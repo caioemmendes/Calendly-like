@@ -50,18 +50,20 @@ def check_availability(date_str, duration=DISPONIBILIDADE_DIARIA['interval']):
 def process_new_agendamento(nome, email, horario_str, duracao=DISPONIBILIDADE_DIARIA['interval']):
     # 1. Valida o horário
     try:
-        horario = datetime.fromisoformat(horario_str)
+        horario = datetime.fromisoformat(horario_str.replace('Z', '+00:00'))
     except ValueError:
         return False, "Formato de horário inválido."
-        
-    # 2. Checa se já não foi ocupado por outra pessoa no meio tempo
-    # Você precisaria refazer a checagem de disponibilidade mais específica aqui.
-    disponiveis = check_availability(horario.strftime('%Y-%m-%d')) # Checa só para o dia
     
-    if horario_str not in disponiveis:
+    # 2. Formata o horário no mesmo padrão que check_availability retorna
+    horario_formatado = horario.strftime('%Y-%m-%d %H:%M:%S')
+    
+    # 3. Checa disponibilidade
+    disponiveis = check_availability(horario.strftime('%Y-%m-%d'))
+    
+    if horario_formatado not in disponiveis:
         return False, "Horário indisponível ou já foi agendado."
-        
-    # 3. Salva no Repository
+    
+    # 4. Salva no Repository
     data = {
         'nome': nome,
         'email': email,
@@ -69,7 +71,5 @@ def process_new_agendamento(nome, email, horario_str, duracao=DISPONIBILIDADE_DI
         'duracao': duracao
     }
     repository.save_new_agendamento(data)
-    
-    # 4. Envia confirmação (a ser implementado no controller)
     
     return True, "Agendamento realizado com sucesso."

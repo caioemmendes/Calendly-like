@@ -33,3 +33,15 @@ def save_new_agendamento(data):
     db.session.execute(sql, data)
     db.session.commit()
     return True
+
+def get_all_agendamentos_in_period(start_date, end_date):
+    # Retorna os horários já ocupados
+    sql = text("SELECT horario, duracao FROM agendamentos WHERE horario BETWEEN :start AND :end")
+    result = db.session.execute(sql, {'start': start_date, 'end': end_date}).fetchall()
+    return [dict(row._mapping) for row in result] # Transforma em lista de dicionários
+
+def get_all_agendamentos():
+    """Retorna todos os agendamentos cadastrados"""
+    sql = text("SELECT id, nome, email, horario, duracao FROM agendamentos ORDER BY horario")
+    result = db.session.execute(sql).fetchall()
+    return [dict(row._mapping) for row in result]

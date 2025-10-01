@@ -3,6 +3,7 @@ from flask_mail import Message
 from app.services import agendamento_service
 from app.utils.email_sender import send_confirmation_email # Função simples a ser criada
 from app.__init__ import mail # Importa a instância do Flask-Mail
+from app.database import repository  # Importe o repository
 
 agendamento_bp = Blueprint('agendamentos', __name__)
 
@@ -36,3 +37,12 @@ def create_agendamento():
         return jsonify({'mensagem': mensagem, 'horario': horario}), 201
     else:
         return jsonify({'erro': mensagem}), 409
+    
+    # Nova rota GET para listar todos os agendamentos
+@agendamento_bp.route('/api/v1/agendamentos', methods=['GET'])
+def get_all_agendamentos():
+    agendamentos = repository.get_all_agendamentos()
+    return jsonify({
+        'total': len(agendamentos),
+        'agendamentos': agendamentos
+    }), 200
