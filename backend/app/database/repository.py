@@ -1,13 +1,13 @@
 # app/database/repository.py
 
 from app.__init__ import db
+from sqlalchemy import text # <-- NOVA IMPORTAÇÃO NECESSÁRIA
 
 # Tabela: Agendamentos (id, nome, email, horario, duracao)
-def create_agendamentos_table(): # <-- O NOME DA FUNÇÃO DEVE SER EXATAMENTE ESTE
-    # Isso seria rodado uma vez na inicialização ou migração.
+def create_agendamentos_table():
     try:
-        # Note que a sintaxe SQL aqui deve ser correta para o seu MySQL
-        db.session.execute("""
+        # AQUI ESTÁ A CORREÇÃO: Envolver a string SQL com text()
+        db.session.execute(text("""
             CREATE TABLE IF NOT EXISTS agendamentos (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nome VARCHAR(100) NOT NULL,
@@ -15,13 +15,21 @@ def create_agendamentos_table(): # <-- O NOME DA FUNÇÃO DEVE SER EXATAMENTE ES
                 horario DATETIME NOT NULL UNIQUE,
                 duracao INT NOT NULL 
             )
-        """)
+        """))
         db.session.commit()
-        return True # Retorna algo para indicar sucesso (opcional)
+        print("Tabela 'agendamentos' verificada/criada com sucesso.")
+        return True
     except Exception as e:
-        # Se houver erro de conexão com o MySQL, ele aparecerá aqui
-        print(f"Erro ao criar tabela: {e}")
-        db.session.rollback() # Garante que o estado do DB seja limpo
+        # Erro de conexão ou sintaxe SQL aparecerá aqui
+        print(f"Erro CRÍTICO ao criar tabela: {e}")
+        db.session.rollback() 
         return False
 
-# ... O restante das funções do Repository (get_all_agendamentos_in_period, save_new_agendamento, etc.)
+# ... o restante do seu código ...
+# OBS: Você deve aplicar o mesmo text() em todas as suas queries SQL brutas (SELECT, INSERT)
+# Exemplo de INSERT corrigido:
+def save_new_agendamento(data):
+    sql = text("INSERT INTO agendamentos (nome, email, horario, duracao) VALUES (:nome, :email, :horario, :duracao)")
+    db.session.execute(sql, data)
+    db.session.commit()
+    return True
